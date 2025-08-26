@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronômetro de Análise para Fábrica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .time-display {
+            font-variant-numeric: tabular-nums;
+        }
+        .btn-active {
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-active:active {
+            transform: scale(0.95);
+        }
+        .btn-green { background-color: #16a34a; }
+        .btn-green:hover { background-color: #15803d; }
+        .btn-red { background-color: #dc2626; }
+        .btn-red:hover { background-color: #b91c1c; }
+        .btn-cyan { background-color: #0891b2; }
+        .btn-cyan:hover { background-color: #0e7490; }
+        .btn-gray { background-color: #4b5563; }
+        .btn-gray:hover { background-color: #374151; }
+        
+        .format-btn-active {
+            background-color: #06b6d4;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgb(6 182 212 / 39%);
+        }
+        .format-btn-inactive {
+            background-color: #374151;
+            color: #9ca3af;
+        }
+        .format-btn-inactive:hover {
+            background-color: #4b5563;
+        }
+        .task-row-header {
+            cursor: pointer;
+        }
+        .details-row {
+            display: none;
+        }
+        .details-row.visible {
+            display: table-row;
+        }
+        /* Temas */
+        .theme-dark { --bg-primary: #111827; --bg-secondary: #1f2937; --bg-tertiary: #374151; --text-primary: #f9fafb; --text-secondary: #d1d5db; --accent: #06b6d4; }
+        .theme-light { --bg-primary: #f3f4f6; --bg-secondary: #ffffff; --bg-tertiary: #e5e7eb; --text-primary: #1f2937; --text-secondary: #4b5563; --accent: #0891b2; }
+    </style>
+</head>
+<body class="bg-[--bg-primary] text-[--text-primary] flex items-center justify-center min-h-screen p-2 sm:p-4">
+
+    <div id="main-container" class="w-full max-w-4xl mx-auto bg-[--bg-secondary] rounded-2xl shadow-2xl p-4 md:p-8">
+        
+        <header class="mb-6 text-center relative">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-[--accent]">Cronômetro</h1>
+            <button id="settingsBtn" class="absolute top-0 right-0 p-2 text-gray-400 hover:text-white" title="Configurações">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Seção do Cronômetro -->
+        <div class="bg-[--bg-primary] rounded-xl p-4 sm:p-6 mb-4 text-center shadow-inner">
+            <div id="time-display" class="time-display text-5xl sm:text-6xl md:text-8xl font-bold tracking-wider text-[--text-primary]">
+                0.000
+            </div>
+        </div>
+        
+        <!-- Campo para Nome da Tarefa -->
+        <div class="bg-[--bg-tertiary] bg-opacity-50 p-3 rounded-lg flex flex-col justify-center mb-4">
+            <h2 class="text-base sm:text-lg font-semibold mb-2 text-center text-[--text-secondary]">Nome da Tarefa</h2>
+            <input type="text" id="taskName" placeholder="Ex: Montagem" class="w-full bg-[--bg-primary] border border-gray-600 text-[--text-primary] rounded-lg px-4 py-2 sm:py-3 text-center text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-[--accent]">
+        </div>
+
+        <!-- Controles Principais (Multifuncionais) -->
+        <div class="bg-[--bg-tertiary] bg-opacity-50 p-3 rounded-lg mb-6">
+             <h2 class="text-base sm:text-lg font-semibold mb-3 text-center text-[--text-secondary]">Controles Principais</h2>
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                <button id="leftControlBtn" class="btn-active text-white font-bold py-4 sm:py-5 px-4 rounded-lg text-lg sm:text-xl"></button>
+                <button id="rightControlBtn" class="btn-active text-white font-bold py-4 sm:py-5 px-4 rounded-lg text-lg sm:text-xl"></button>
+            </div>
+        </div>
+        
+        <!-- Tabela de Dados -->
+        <div class="bg-[--bg-tertiary] bg-opacity-50 p-3 rounded-lg">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                <h2 class="text-lg sm:text-xl font-semibold text-[--text-secondary]">Análise de Processos</h2>
+                <div class="flex gap-2">
+                    <button id="clearBtn" class="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-xs sm:text-sm transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500">Limpar Análise</button>
+                    <button id="exportBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg text-xs sm:text-sm transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400">Exportar CSV</button>
+                </div>
+            </div>
+            <div class="max-h-96 overflow-y-auto rounded-md">
+                <table class="w-full text-sm text-left text-[--text-secondary]">
+                    <thead class="text-xs text-[--accent] uppercase bg-[--bg-tertiary] sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">Tarefa</th>
+                            <th scope="col" class="px-4 py-3 text-center">Amostras</th>
+                            <th scope="col" class="px-4 py-3 text-right">Média</th>
+                            <th scope="col" class="px-4 py-3 text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="laps-table-body">
+                         <tr id="no-data-row">
+                            <td colspan="4" class="text-center py-8 text-gray-500">Nenhum dado registrado.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Configurações -->
+    <div id="settingsOverlay" class="fixed inset-0 bg-black bg-opacity-70 hidden z-40"></div>
+    <div id="settingsModal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[--bg-secondary] rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm hidden z-50 border border-gray-700">
+        <h2 class="text-xl font-bold text-[--accent] text-center mb-6">Configurações</h2>
+        
+        <!-- Formato de Tempo -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-3 text-center text-[--text-secondary]">Formato de Tempo</h3>
+            <div class="grid grid-cols-2 gap-3">
+                 <button id="modal-format-decimin1000" class="w-full font-bold py-2 px-3 rounded-lg transition text-sm sm:text-base">Minutos Decimais</button>
+                 <button id="modal-format-standard" class="w-full font-bold py-2 px-3 rounded-lg transition text-sm sm:text-base">Segundos</button>
+            </div>
+        </div>
+
+        <!-- Tema -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-3 text-center text-[--text-secondary]">Tema</h3>
+            <div class="grid grid-cols-2 gap-3">
+                 <button data-theme="theme-dark" class="theme-btn w-full font-bold py-2 px-3 rounded-lg transition text-sm sm:text-base bg-gray-800 text-white border-2 border-gray-500">Escuro</button>
+                 <button data-theme="theme-light" class="theme-btn w-full font-bold py-2 px-3 rounded-lg transition text-sm sm:text-base bg-gray-200 text-black border-2 border-transparent">Claro</button>
+            </div>
+        </div>
+
+        <!-- Tela Cheia -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold mb-3 text-center text-[--text-secondary]">Tela</h3>
+            <button id="fullscreenBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                <svg id="icon-expand" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4m12 4V4h-4M4 16v4h4m12-4v-4h-4" />
+                </svg>
+                <svg id="icon-compress" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4m12 12h4v-4M8 20H4v-4m12-12h4V8" />
+                </svg>
+                <span id="fullscreenBtnText">Tela Cheia</span>
+            </button>
+        </div>
+        
+        <!-- Sobre e Easter Egg -->
+        <div class="text-center text-xs text-gray-500 mb-6">
+            <p>Desenvolvido por <span id="easterEggTrigger" class="cursor-pointer">Kelleton Macedo</span></p>
+        </div>
+
+        <!-- Fechar Modal -->
+        <button id="closeSettingsBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-4 rounded-lg">Fechar</button>
+    </div>
+
+    <!-- Modal do Tetris -->
+    <div id="tetrisOverlay" class="fixed inset-0 bg-black bg-opacity-90 hidden z-[60] flex flex-col items-center justify-center p-4">
+        <canvas id="tetris" width="240" height="400" class="border-2 border-gray-500 bg-gray-900"></canvas>
+        <div id="score" class="text-white text-2xl mt-4">Score: 0</div>
+        <div class="grid grid-cols-3 gap-4 mt-4 w-full max-w-xs">
+            <button id="tetris-left" class="bg-cyan-500 text-white p-4 rounded-lg text-2xl col-start-1">←</button>
+            <button id="tetris-right" class="bg-cyan-500 text-white p-4 rounded-lg text-2xl col-start-3">→</button>
+            <button id="tetris-rotate" class="bg-cyan-500 text-white p-4 rounded-lg text-2xl col-start-1">↻</button>
+            <button id="tetris-down" class="bg-cyan-500 text-white p-4 rounded-lg text-2xl col-start-3">↓</button>
+        </div>
+        <button id="closeTetrisBtn" class="mt-6 bg-red-600 text-white py-2 px-6 rounded-lg">Fechar Jogo</button>
+    </div>
+
+
+    <script>
+        // --- Elementos do DOM ---
+        const mainContainer = document.getElementById('main-container');
+        const timeDisplay = document.getElementById('time-display');
+        const leftControlBtn = document.getElementById('leftControlBtn');
+        const rightControlBtn = document.getElementById('rightControlBtn');
+        const taskNameInput = document.getElementById('taskName');
+        const lapsTableBody = document.getElementById('laps-table-body');
+        const exportBtn = document.getElementById('exportBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const modalFormatButtons = document.querySelectorAll('[id^="modal-format-"]');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const fullscreenBtnText = document.getElementById('fullscreenBtnText');
+        const iconExpand = document.getElementById('icon-expand');
+        const iconCompress = document.getElementById('icon-compress');
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const easterEggTrigger = document.getElementById('easterEggTrigger');
+        const tetrisOverlay = document.getElementById('tetrisOverlay');
+        const closeTetrisBtn = document.getElementById('closeTetrisBtn');
+
+
+        // --- Variáveis do Cronômetro ---
+        let startTime;
+        let difference = 0;
+        let tInterval;
+        let running = false;
+        let tasksData = {};
+        let timeFormat = 'decimin1000';
+        const UPDATE_INTERVAL = 11; 
+        const STORAGE_KEY_DATA = 'stopwatchAnalysisData';
+        const STORAGE_KEY_THEME = 'stopwatchTheme';
+
+        // --- Feedback Sonoro ---
+        let audioCtx;
+        let soundsReady = false;
+
+        function initAudio() {
+            if (!soundsReady && (window.AudioContext || window.webkitAudioContext)) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                soundsReady = true;
+            }
+        }
+
+        function playBeep(frequency = 520, duration = 50, volume = 0.3) {
+            if (!soundsReady || !audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 0.01);
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            oscillator.type = 'sine';
+            oscillator.start(audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + (duration / 1000));
+            oscillator.stop(audioCtx.currentTime + (duration / 1000));
+        }
+
+        // --- Funções de Cache Local ---
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(tasksData));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem(STORAGE_KEY_DATA);
+            if (savedData) {
+                tasksData = JSON.parse(savedData);
+                redrawTable();
+            }
+        }
+        
+        // --- Funções de Tema ---
+        function applyTheme(theme) {
+            document.body.className = `bg-[--bg-primary] text-[--text-primary] flex items-center justify-center min-h-screen p-2 sm:p-4 ${theme}`;
+            localStorage.setItem(STORAGE_KEY_THEME, theme);
+            themeButtons.forEach(btn => {
+                if (btn.dataset.theme === theme) {
+                    btn.classList.add('border-gray-400');
+                    btn.classList.remove('border-transparent');
+                } else {
+                    btn.classList.remove('border-gray-400');
+                    btn.classList.add('border-transparent');
+                }
+            });
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) || 'theme-dark';
+            applyTheme(savedTheme);
+        }
+
+        // --- Funções de Formatação e UI ---
+
+        function formatDuration(ms) {
+            if (timeFormat === 'decimin1000') {
+                const totalMinutes = ms / 60000;
+                return totalMinutes.toFixed(3);
+            }
+            const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((ms / (1000 * 60)) % 60);
+            const seconds = Math.floor((ms / 1000) % 60);
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function updateButtonStates() {
+            const buttonBaseClasses = 'btn-active text-white font-bold py-4 sm:py-5 px-4 rounded-lg text-lg sm:text-xl';
+            if (!running && difference === 0) {
+                leftControlBtn.textContent = 'Iniciar';
+                leftControlBtn.className = `${buttonBaseClasses} btn-green`;
+                leftControlBtn.onclick = startTimer;
+                rightControlBtn.textContent = 'Resetar';
+                rightControlBtn.className = `${buttonBaseClasses} btn-gray opacity-50 cursor-not-allowed`;
+                rightControlBtn.disabled = true;
+            } else if (running) {
+                leftControlBtn.textContent = 'Registrar';
+                leftControlBtn.className = `${buttonBaseClasses} btn-cyan`;
+                leftControlBtn.onclick = recordLap;
+                rightControlBtn.textContent = 'Parar';
+                rightControlBtn.className = `${buttonBaseClasses} btn-red`;
+                rightControlBtn.disabled = false;
+                rightControlBtn.onclick = stopTimer;
+            } else if (!running && difference > 0) {
+                leftControlBtn.textContent = 'Continuar';
+                leftControlBtn.className = `${buttonBaseClasses} btn-green`;
+                leftControlBtn.onclick = startTimer;
+                rightControlBtn.textContent = 'Resetar';
+                rightControlBtn.className = `${buttonBaseClasses} btn-gray`;
+                rightControlBtn.disabled = false;
+                rightControlBtn.onclick = resetTimer;
+            }
+        }
+
+        function redrawTable() {
+            const taskNames = Object.keys(tasksData);
+            if (taskNames.length === 0) {
+                lapsTableBody.innerHTML = `<tr id="no-data-row"><td colspan="4" class="text-center py-8 text-gray-500">Nenhum dado registrado.</td></tr>`;
+                return;
+            }
+            let tableHTML = '';
+            taskNames.forEach(name => {
+                const task = tasksData[name];
+                const sanitizedNameId = name.replace(/[^a-zA-Z0-9]/g, '');
+                tableHTML += `
+                    <tr class="task-row bg-[--bg-primary] border-b border-[--bg-tertiary] hover:bg-opacity-50" data-task-name="${name}">
+                        <td class="task-row-header px-4 py-4 font-medium text-[--text-primary]">${name}</td>
+                        <td class="task-row-header px-4 py-4 text-center">${task.count}</td>
+                        <td class="task-row-header px-4 py-4 time-display text-right">${formatDuration(task.average)}</td>
+                        <td class="px-4 py-4 text-center">
+                            <button class="remove-task-btn text-red-500 hover:text-red-400 p-1" data-task-name="${name}" title="Remover tarefa e todas as amostras">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tableHTML += `
+                    <tr class="details-row bg-black bg-opacity-20" id="details-${sanitizedNameId}">
+                        <td colspan="4" class="p-0">
+                            <div class="p-2 sm:p-4">
+                                <table class="w-full text-sm">
+                                    <thead class="text-xs text-gray-400">
+                                        <tr>
+                                            <th class="px-2 sm:px-4 py-2 text-left">Amostra #</th>
+                                            <th class="px-2 sm:px-4 py-2 text-right">Duração</th>
+                                            <th class="px-2 sm:px-4 py-2 text-right">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${task.durations.map((duration, index) => `
+                                            <tr class="border-t border-[--bg-tertiary]">
+                                                <td class="px-2 sm:px-4 py-2 text-left">${index + 1}</td>
+                                                <td class="px-2 sm:px-4 py-2 text-right time-display">${formatDuration(duration)}</td>
+                                                <td class="px-2 sm:px-4 py-2 text-right">
+                                                    <button class="remove-sample-btn text-red-500 hover:text-red-400 p-1" data-task-name="${name}" data-sample-index="${index}" title="Remover amostra">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            lapsTableBody.innerHTML = tableHTML;
+        }
+
+        // --- Funções do Cronômetro ---
+
+        function startTimer() {
+            if (!running) {
+                playBeep();
+                startTime = new Date().getTime() - difference;
+                tInterval = setInterval(updateTime, UPDATE_INTERVAL);
+                running = true;
+                updateButtonStates();
+            }
+        }
+
+        function stopTimer() {
+            if (running) {
+                playBeep();
+                clearInterval(tInterval);
+                difference = new Date().getTime() - startTime;
+                running = false;
+                updateButtonStates();
+            }
+        }
+
+        function resetTimer() {
+            playBeep();
+            clearInterval(tInterval);
+            running = false;
+            difference = 0;
+            updateTime();
+            updateButtonStates();
+        }
+        
+        function clearAnalysis() {
+            playBeep();
+            tasksData = {};
+            saveData();
+            redrawTable();
+        }
+
+        function updateTime() {
+            if (running) {
+                difference = new Date().getTime() - startTime;
+            }
+            timeDisplay.innerHTML = formatDuration(difference);
+        }
+
+        // --- Funções de Registro e Exportação ---
+
+        function recordLap() {
+            if (running) {
+                playBeep();
+                const taskName = taskNameInput.value.trim() || 'Tarefa sem nome';
+                const lapTime = new Date().getTime() - startTime;
+
+                if (!tasksData[taskName]) {
+                    tasksData[taskName] = { durations: [], count: 0, totalDuration: 0, average: 0 };
+                }
+
+                const task = tasksData[taskName];
+                task.durations.push(lapTime);
+                task.totalDuration += lapTime;
+                task.count = task.durations.length;
+                task.average = task.totalDuration / task.count;
+                
+                saveData();
+                redrawTable();
+                
+                difference = 0;
+                startTime = new Date().getTime();
+            }
+        }
+
+        function removeSample(taskName, sampleIndex) {
+            playBeep();
+            const task = tasksData[taskName];
+            if (!task) return;
+
+            const removedDuration = task.durations.splice(sampleIndex, 1)[0];
+            task.totalDuration -= removedDuration;
+            task.count = task.durations.length;
+
+            if (task.count === 0) {
+                task.average = 0;
+            } else {
+                task.average = task.totalDuration / task.count;
+            }
+            
+            saveData();
+            
+            const summaryRow = document.querySelector(`tr.task-row[data-task-name="${taskName}"]`);
+            if (summaryRow) {
+                summaryRow.cells[1].textContent = task.count;
+                summaryRow.cells[2].textContent = formatDuration(task.average);
+            }
+
+            const sanitizedNameId = taskName.replace(/[^a-zA-Z0-9]/g, '');
+            const detailsRow = document.getElementById(`details-${sanitizedNameId}`);
+            if (detailsRow) {
+                const sampleRowToRemove = detailsRow.querySelector(`button[data-sample-index="${sampleIndex}"]`).closest('tr');
+                if(sampleRowToRemove) sampleRowToRemove.remove();
+                
+                const remainingSampleRows = detailsRow.querySelectorAll('tbody tr');
+                remainingSampleRows.forEach((row, newIndex) => {
+                    row.cells[0].textContent = newIndex + 1;
+                    const btn = row.querySelector('.remove-sample-btn');
+                    if (btn) btn.dataset.sampleIndex = newIndex;
+                });
+            }
+        }
+
+        function removeTask(taskName) {
+            playBeep();
+            if (tasksData[taskName]) {
+                delete tasksData[taskName];
+                saveData();
+                redrawTable();
+            }
+        }
+
+        function exportToCSV() {
+            playBeep();
+            const taskNames = Object.keys(tasksData);
+            if (taskNames.length === 0) {
+                alert('Não há dados para exportar.');
+                return;
+            }
+            
+            let csvContent = '\uFEFF';
+            
+            const headers = ['Nome da Tarefa', 'Amostra #', 'Duração (Formatada)'];
+            csvContent += headers.join(",") + "\n";
+            
+            taskNames.forEach(name => {
+                const task = tasksData[name];
+                task.durations.forEach((duration, index) => {
+                    const row = [ `"${name.replace(/"/g, '""')}"`, index + 1, formatDuration(duration) ];
+                    csvContent += row.join(",") + "\n";
+                });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            link.setAttribute("download", `dados_cronometro_${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function setFormat(newFormat) {
+            playBeep();
+            timeFormat = newFormat;
+            
+            modalFormatButtons.forEach(btn => {
+                const btnFormat = btn.id.split('-')[2];
+                const isActive = btnFormat === newFormat;
+                btn.classList.toggle('format-btn-active', isActive);
+                btn.classList.toggle('format-btn-inactive', !isActive);
+            });
+
+            updateTime();
+            redrawTable();
+        }
+
+        function toggleFullScreen() {
+            playBeep();
+            const doc = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (doc.requestFullscreen) doc.requestFullscreen().catch(err => console.error(err));
+                else if (doc.mozRequestFullScreen) doc.mozRequestFullScreen();
+                else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+                else if (doc.msRequestFullscreen) doc.msRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+            }
+        }
+        
+        function updateFullscreenIcon() {
+            const isFullscreen = !!document.fullscreenElement;
+            iconExpand.classList.toggle('hidden', isFullscreen);
+            iconCompress.classList.toggle('hidden', !isFullscreen);
+            fullscreenBtnText.textContent = isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia';
+        }
+        
+        function openSettings() {
+            playBeep();
+            settingsModal.classList.remove('hidden');
+            settingsOverlay.classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            playBeep();
+            settingsModal.classList.add('hidden');
+            settingsOverlay.classList.add('hidden');
+        }
+
+        // --- Event Listeners ---
+        exportBtn.addEventListener('click', exportToCSV);
+        clearBtn.addEventListener('click', clearAnalysis);
+        taskNameInput.addEventListener('input', resetTimer);
+        settingsBtn.addEventListener('click', openSettings);
+        closeSettingsBtn.addEventListener('click', closeSettings);
+        settingsOverlay.addEventListener('click', closeSettings);
+        fullscreenBtn.addEventListener('click', toggleFullScreen);
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        
+        modalFormatButtons.forEach(btn => {
+            const btnFormat = btn.id.split('-')[2];
+            btn.addEventListener('click', () => setFormat(btnFormat));
+        });
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                playBeep();
+                applyTheme(btn.dataset.theme);
+            });
+        });
+
+        lapsTableBody.addEventListener('click', (event) => {
+            const removeTaskButton = event.target.closest('.remove-task-btn');
+            if (removeTaskButton) {
+                removeTask(removeTaskButton.dataset.taskName);
+                return;
+            }
+
+            const removeSampleButton = event.target.closest('.remove-sample-btn');
+            if (removeSampleButton) {
+                removeSample(removeSampleButton.dataset.taskName, parseInt(removeSampleButton.dataset.sampleIndex, 10));
+                return;
+            }
+
+            const headerRow = event.target.closest('.task-row-header');
+            if (headerRow) {
+                playBeep();
+                const taskRow = headerRow.closest('.task-row');
+                const taskName = taskRow.dataset.taskName;
+                if (taskName) {
+                    const sanitizedNameId = taskName.replace(/[^a-zA-Z0-9]/g, '');
+                    const detailsRow = document.getElementById(`details-${sanitizedNameId}`);
+                    if (detailsRow) {
+                        detailsRow.classList.toggle('visible');
+                    }
+                }
+            }
+        });
+        
+        // --- Lógica do Tetris (Easter Egg) ---
+        let easterEggClicks = 0;
+        easterEggTrigger.addEventListener('click', () => {
+            playBeep(1200, 30);
+            easterEggClicks++;
+            if (easterEggClicks >= 7) {
+                easterEggClicks = 0;
+                closeSettings();
+                tetrisOverlay.classList.remove('hidden');
+                startGame();
+            }
+        });
+
+        closeTetrisBtn.addEventListener('click', () => {
+            tetrisOverlay.classList.add('hidden');
+            cancelAnimationFrame(animationFrameId);
+        });
+
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        context.scale(20, 20);
+
+        let arena = createMatrix(12, 20);
+        let player = { pos: {x: 0, y: 0}, matrix: null, score: 0 };
+        let animationFrameId;
+
+        const colors = [null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
+
+        function arenaSweep() {
+            let rowCount = 1;
+            outer: for (let y = arena.length - 1; y > 0; --y) {
+                for (let x = 0; x < arena[y].length; ++x) {
+                    if (arena[y][x] === 0) {
+                        continue outer;
+                    }
+                }
+                const row = arena.splice(y, 1)[0].fill(0);
+                arena.unshift(row);
+                ++y;
+                player.score += rowCount * 10;
+                rowCount *= 2;
+            }
+        }
+
+        function collide(arena, player) {
+            const [m, o] = [player.matrix, player.pos];
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) {
+                matrix.push(new Array(w).fill(0));
+            }
+            return matrix;
+        }
+
+        function createPiece(type) {
+            if (type === 'T') return [[0,0,0],[1,1,1],[0,1,0]];
+            else if (type === 'O') return [[2,2],[2,2]];
+            else if (type === 'L') return [[0,3,0],[0,3,0],[0,3,3]];
+            else if (type === 'J') return [[0,4,0],[0,4,0],[4,4,0]];
+            else if (type === 'I') return [[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]];
+            else if (type === 'S') return [[0,6,6],[6,6,0],[0,0,0]];
+            else if (type === 'Z') return [[7,7,0],[0,7,7],[0,0,0]];
+        }
+
+        function draw() {
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            drawMatrix(arena, {x: 0, y: 0});
+            drawMatrix(player.matrix, player.pos);
+        }
+
+        function drawMatrix(matrix, offset) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        context.fillStyle = colors[value];
+                        context.fillRect(x + offset.x, y + offset.y, 1, 1);
+                    }
+                });
+            });
+        }
+
+        function merge(arena, player) {
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        arena[y + player.pos.y][x + player.pos.x] = value;
+                    }
+                });
+            });
+        }
+
+        function playerDrop() {
+            player.pos.y++;
+            if (collide(arena, player)) {
+                player.pos.y--;
+                merge(arena, player);
+                playerReset();
+                arenaSweep();
+                updateScore();
+            }
+            dropCounter = 0;
+        }
+
+        function playerMove(dir) {
+            player.pos.x += dir;
+            if (collide(arena, player)) {
+                player.pos.x -= dir;
+            }
+        }
+
+        function playerReset() {
+            const pieces = 'ILJOTSZ';
+            player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
+            player.pos.y = 0;
+            player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+            if (collide(arena, player)) {
+                arena.forEach(row => row.fill(0));
+                player.score = 0;
+                updateScore();
+            }
+        }
+
+        function rotate(matrix, dir) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            if (dir > 0) {
+                matrix.forEach(row => row.reverse());
+            } else {
+                matrix.reverse();
+            }
+        }
+
+        function playerRotate(dir) {
+            const pos = player.pos.x;
+            let offset = 1;
+            rotate(player.matrix, dir);
+            while (collide(arena, player)) {
+                player.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > player.matrix[0].length) {
+                    rotate(player.matrix, -dir);
+                    player.pos.x = pos;
+                    return;
+                }
+            }
+        }
+
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+
+        function update(time = 0) {
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                playerDrop();
+            }
+            draw();
+            animationFrameId = requestAnimationFrame(update);
+        }
+
+        function updateScore() {
+            scoreElement.innerText = 'Score: ' + player.score;
+        }
+        
+        function startGame() {
+            playerReset();
+            updateScore();
+            update();
+        }
+
+        document.addEventListener('keydown', event => {
+            if (tetrisOverlay.classList.contains('hidden')) return;
+            if (event.keyCode === 37) playerMove(-1);
+            else if (event.keyCode === 39) playerMove(1);
+            else if (event.keyCode === 40) playerDrop();
+            else if (event.keyCode === 81) playerRotate(-1); // Q
+            else if (event.keyCode === 87) playerRotate(1); // W
+        });
+
+        document.getElementById('tetris-left').addEventListener('click', () => playerMove(-1));
+        document.getElementById('tetris-right').addEventListener('click', () => playerMove(1));
+        document.getElementById('tetris-down').addEventListener('click', () => playerDrop());
+        document.getElementById('tetris-rotate').addEventListener('click', () => playerRotate(1));
+
+
+        // Inicializa a aplicação
+        document.addEventListener('DOMContentLoaded', () => {
+            mainContainer.addEventListener('click', initAudio, { once: true });
+            loadData();
+            loadTheme();
+            updateButtonStates();
+            setFormat(timeFormat);
+        });
+
+    </script>
+</body>
+</html>
