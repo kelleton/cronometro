@@ -194,7 +194,8 @@
 
 
     <script>
-        // --- Service Worker and Manifest Setup ---
+        // --- PWA Setup ---
+        // 1. Create Manifest Blob
         const manifest = {
             "name": "Cronômetro de Análise",
             "short_name": "Cronômetro",
@@ -215,12 +216,12 @@
                 "purpose": "any maskable"
             }]
         };
-
         const manifestString = JSON.stringify(manifest);
         const manifestBlob = new Blob([manifestString], {type: 'application/json'});
         const manifestURL = URL.createObjectURL(manifestBlob);
         document.querySelector('#manifest-link').setAttribute('href', manifestURL);
 
+        // 2. Create and Register Service Worker
         const swCode = `
             const CACHE_NAME = 'cronometro-cache-v1';
             const urlsToCache = [
@@ -228,27 +229,11 @@
                 'https://cdn.tailwindcss.com',
                 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap'
             ];
-
             self.addEventListener('install', event => {
-                event.waitUntil(
-                    caches.open(CACHE_NAME)
-                        .then(cache => {
-                            console.log('Opened cache');
-                            return cache.addAll(urlsToCache);
-                        })
-                );
+                event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
             });
-
             self.addEventListener('fetch', event => {
-                event.respondWith(
-                    caches.match(event.request)
-                        .then(response => {
-                            if (response) {
-                                return response;
-                            }
-                            return fetch(event.request);
-                        })
-                );
+                event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
             });
         `;
         const swBlob = new Blob([swCode], {type: 'application/javascript'});
@@ -257,8 +242,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register(swURL)
-                    .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
-                    .catch(error => console.log('ServiceWorker registration failed: ', error));
+                    .then(reg => console.log('Service Worker registered.'))
+                    .catch(err => console.log('Service Worker registration failed: ', err));
             });
         }
 
