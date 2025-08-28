@@ -1,0 +1,20 @@
+{
+    "name": "Cronômetro de Análise",
+    "short_name": "Cronômetro",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1f2937",
+    "theme_color": "#1f2937",
+    "description": "Um cronômetro para análise de processos industriais.",
+    "icons": [{
+        "src": "https://placehold.co/192x192/06b6d4/ffffff?text=Crono",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+    }, {
+        "src": "https://placehold.co/512x512/06b6d4/ffffff?text=Crono",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+    }]
+}
