@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cronômetro de Análise para Fábrica</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1f2937"/>
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/06b6d4/ffffff?text=Crono">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -211,7 +215,7 @@
         let running = false;
         let tasksData = {};
         let timeFormat = 'decimin1000';
-        let lastLapTime = 0; // Nova variável para o tempo da última volta
+        let lastLapTime = 0; 
         const UPDATE_INTERVAL = 11; 
         const STORAGE_KEY_DATA = 'stopwatchAnalysisData';
         const STORAGE_KEY_THEME = 'stopwatchTheme';
@@ -378,7 +382,7 @@
             if (!running) {
                 playBeep();
                 startTime = new Date().getTime() - difference;
-                lastLapTime = difference; // Define o ponto de partida para a próxima volta
+                lastLapTime = difference; 
                 tInterval = setInterval(updateTime, UPDATE_INTERVAL);
                 running = true;
                 updateButtonStates();
