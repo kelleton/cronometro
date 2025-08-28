@@ -195,7 +195,6 @@
 
     <script>
         // --- PWA Setup ---
-        // 1. Create Manifest Blob
         const manifest = {
             "name": "Cronômetro de Análise",
             "short_name": "Cronômetro",
@@ -221,7 +220,6 @@
         const manifestURL = URL.createObjectURL(manifestBlob);
         document.querySelector('#manifest-link').setAttribute('href', manifestURL);
 
-        // 2. Create and Register Service Worker
         const swCode = `
             const CACHE_NAME = 'cronometro-cache-v1';
             const urlsToCache = [
