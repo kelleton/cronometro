@@ -204,7 +204,6 @@
         const tetrisOverlay = document.getElementById('tetrisOverlay');
         const closeTetrisBtn = document.getElementById('closeTetrisBtn');
 
-
         // --- Variáveis do Cronômetro ---
         let startTime;
         let difference = 0;
@@ -212,6 +211,7 @@
         let running = false;
         let tasksData = {};
         let timeFormat = 'decimin1000';
+        let lastLapTime = 0; // Nova variável para o tempo da última volta
         const UPDATE_INTERVAL = 11; 
         const STORAGE_KEY_DATA = 'stopwatchAnalysisData';
         const STORAGE_KEY_THEME = 'stopwatchTheme';
@@ -378,6 +378,7 @@
             if (!running) {
                 playBeep();
                 startTime = new Date().getTime() - difference;
+                lastLapTime = difference; // Define o ponto de partida para a próxima volta
                 tInterval = setInterval(updateTime, UPDATE_INTERVAL);
                 running = true;
                 updateButtonStates();
@@ -399,6 +400,7 @@
             clearInterval(tInterval);
             running = false;
             difference = 0;
+            lastLapTime = 0;
             updateTime();
             updateButtonStates();
         }
@@ -423,7 +425,10 @@
             if (running) {
                 playBeep();
                 const taskName = taskNameInput.value.trim() || 'Tarefa sem nome';
-                const lapTime = new Date().getTime() - startTime;
+                
+                const totalTime = new Date().getTime() - startTime;
+                const lapTime = totalTime - lastLapTime;
+                lastLapTime = totalTime;
 
                 if (!tasksData[taskName]) {
                     tasksData[taskName] = { durations: [], count: 0, totalDuration: 0, average: 0 };
@@ -437,9 +442,6 @@
                 
                 saveData();
                 redrawTable();
-                
-                difference = 0;
-                startTime = new Date().getTime();
             }
         }
 
