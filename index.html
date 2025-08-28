@@ -7,6 +7,7 @@
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1f2937"/>
     <link rel="apple-touch-icon" href="https://placehold.co/192x192/06b6d4/ffffff?text=Crono">
+    <link rel="manifest" href="manifest.json">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -839,7 +840,6 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
                 deferredPrompt = null;
                 installBtn.classList.add('hidden');
                 installBtn.classList.remove('flex');
